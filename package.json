@@ -1,0 +1,42 @@
+{
+  "name": "boost-context",
+  "version": "0.1.0",
+  "description": "Boost Context CLI utilities",
+  "type": "commonjs",
+  "bin": {
+    "bctx": "./bin/bctx.js"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "clean": "rm -rf dist",
+    "dev": "tsx src/index.ts",
+    "prepare": "npm run build",
+    "start": "node ./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "keywords": [
+    "cli",
+    "boost",
+    "context"
+  ],
+  "license": "MIT",
+  "author": "",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "commander": "^11.1.0",
+    "ignore": "^5.3.1",
+    "picomatch": "^2.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "@types/picomatch": "^2.3.2",
+    "tslib": "^2.6.2",
+    "tsx": "^3.12.7",
+    "typescript": "^5.3.3"
+  }
+}
