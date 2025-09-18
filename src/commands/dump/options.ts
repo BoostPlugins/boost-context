@@ -1,5 +1,7 @@
+import { DEFAULT_EXCLUDE_PATTERNS } from './constants';
+
 export const collectOption = (value: string, previous: string[] = []): string[] => {
-  if (!value) {
+  if (value == null) {
     return previous;
   }
 
@@ -7,6 +9,12 @@ export const collectOption = (value: string, previous: string[] = []): string[] 
     .split(',')
     .map((piece) => piece.trim())
     .filter((piece) => piece.length > 0);
+
+  const isDefault = previous === DEFAULT_EXCLUDE_PATTERNS;
+
+  if (isDefault) {
+    return pieces;
+  }
 
   if (pieces.length === 0) {
     return previous;

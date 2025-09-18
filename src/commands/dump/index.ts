@@ -5,11 +5,12 @@ import { collectCandidatePaths, buildMatchedFiles, loadIgnoreFilter, verifyRoot 
 import { compilePatterns, isExcluded, matchesExtension } from './filters';
 import { outputFiles, printTree } from './output';
 import { collectOption, parseExtensions } from './options';
+import { DEFAULT_EXCLUDE_PATTERNS } from './constants';
 
 const runContext = async (
   _command: Command,
   rawExtensions: string[],
-  { cwd = '.', exclude = [] }: ContextOptions,
+  { cwd = '.', exclude = DEFAULT_EXCLUDE_PATTERNS }: ContextOptions,
 ): Promise<void> => {
   const root = path.resolve(cwd);
   await verifyRoot(root);
@@ -47,7 +48,12 @@ export const buildDumpCommand = (): Command => {
     .description('Dump a filtered directory tree and matching file contents, honouring .gitignore rules.')
     .argument('[extensions...]', 'extensions to include (space or | separated, leading dot optional).')
     .option('-C, --cwd <dir>', 'root directory to scan', '.')
-    .option('-x, --exclude <pattern>', 'glob pattern to exclude (repeatable).', collectOption, [])
+    .option(
+      '-x, --exclude <pattern>',
+      'glob pattern to exclude (repeatable).',
+      collectOption,
+      DEFAULT_EXCLUDE_PATTERNS,
+    )
     .allowExcessArguments(false)
     .action(async (extensions: string[], options: ContextOptions, cmd: Command) => {
       try {
@@ -62,3 +68,4 @@ export const buildDumpCommand = (): Command => {
 };
 
 export type { ContextOptions };
+export { DEFAULT_EXCLUDE_PATTERNS } from './constants';
