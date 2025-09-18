@@ -2,7 +2,7 @@ import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import puppeteer, { type Browser, type Page } from 'puppeteer';
-import { buildSnapCommand } from '../src/commands/browser';
+import { buildSnapCommand } from '../src/commands/snap';
 
 jest.mock('puppeteer', () => {
   const launch = jest.fn();

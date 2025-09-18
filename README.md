@@ -1,4 +1,4 @@
-# boost-context
+# Boost Context CLI
 
 A lightweight toolkit of CLI commands for gathering project context and capturing web page snapshots. Perfect for quickly sharing trees of relevant files or grabbing visual baselines during reviews. This repository was produced end-to-end with the help of ChatGPT Codex.
 
@@ -58,19 +58,6 @@ Outputs a tree such as:
 ```
 followed by the contents of each matched file.
 
-### Tee
-Pipe stdin to a file while still streaming it to stdout—handy for saving build logs or command output for LLM prompts without losing the console stream.
-
-```bash
-some-command | bctx tee logs/latest/output.txt
-```
-
-| Option | Description |
-| ------ | ----------- |
-| `file` | Destination file (optional). Defaults to `bctx-capture-<YYYYMMDD-HHMMSS>.log` in the current directory. Intermediate folders are created automatically. |
-
-The command does not print additional output—whatever arrives on stdin is echoed as-is to stdout and written to the target file. Set `BCTX_CAPTURE_DIR` to capture into a specific directory by default.
-
 ### Snap
 Capture a PNG snapshot of a page once it loads.
 
@@ -107,6 +94,19 @@ Override the destination directory by setting `BCTX_SCREENSHOT_DIR=/path/to/scre
 
 Export cookies from Chrome/Chromium using an extension such as “Get cookies.txt” (Netscape format) or the DevTools Application → Cookies panel (JSON). Supply the exported file with `--cookie-file` to replay authenticated sessions without manually copying values.
 
+### Tee
+Pipe stdin to a file while still streaming it to stdout—handy for saving build logs or command output for LLM prompts without losing the console stream.
+
+```bash
+some-command | bctx tee logs/latest/output.txt
+```
+
+| Option | Description |
+| ------ | ----------- |
+| `file` | Destination file (optional). Defaults to `bctx-capture-<YYYYMMDD-HHMMSS>.log` in the current directory. Intermediate folders are created automatically. |
+
+The command does not print additional output—whatever arrives on stdin is echoed as-is to stdout and written to the target file. Set `BCTX_CAPTURE_DIR` to capture into a specific directory by default.
+
 ## Development
 - `npm run build` compiles TypeScript to `dist/`.
 - `npm run dev -- <args>` runs the CLI with automatic reload.
@@ -116,7 +116,15 @@ Export cookies from Chrome/Chromium using an extension such as “Get cookies.tx
 ```
 src/
   commands/
-    browser/
+    dump/
+      filters.ts
+      fs.ts
+      index.ts
+      options.ts
+      output.ts
+      types.ts
+      utils.ts
+    snap/
       cookies.ts
       index.ts
       output.ts
@@ -125,16 +133,8 @@ src/
       types.ts
       url.ts
       viewport.ts
-    capture/
+    tee/
       index.ts
-    context/
-      index.ts
-      options.ts
-      filters.ts
-      fs.ts
-      output.ts
-      types.ts
-      utils.ts
   index.ts
 ```
 
