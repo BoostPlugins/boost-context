@@ -44,53 +44,45 @@ describe('dump CLI integration', () => {
     rmSync(workspace, { recursive: true, force: true });
   });
 
-  it('prints a tree and matching file contents filtered by extensions and .gitignore', () => {
-    write(workspace, '.gitignore', 'ignored.ts\n');
-    write(workspace, 'alpha.ts', "export const alpha = 'A';\n");
-    write(workspace, 'beta.tsx', "export const beta = 'B';\n");
-    write(workspace, 'ignored.ts', 'should be hidden\n');
-    write(workspace, 'docs/readme.md', '# readme\n');
-    write(workspace, 'nested/gamma.ts', "export const gamma = 'G';\n");
+  it('shows all files in tree but hides content for files matching .gitignore, .bctxignore, or -x flag', () => {
+    write(workspace, '.gitignore', 'ignored-by-git.ts\n');
+    write(workspace, '.bctxignore', '*.css\nignored-by-bctx.ts\n');
+    write(workspace, 'src/components/Button.tsx', 'export const Button = () => {};\n');
+    write(workspace, 'src/components/Button.css', '.button { color: red; }\n');
+    write(workspace, 'src/lib/api.ts', '// API logic\n');
+    write(workspace, 'src/lib/ignored-by-git.ts', '// Should not see this content\n');
+    write(workspace, 'src/lib/ignored-by-bctx.ts', '// Should not see this content either\n');
+    write(workspace, 'src/tests/ignored-by-cli.test.ts', '// Test file content\n');
 
-    const { stdout, stderr, status } = runCli(workspace, ['dump', 'ts', 'tsx']);
+    const { stdout, stderr, status } = runCli(workspace, ['dump', 'tsx', 'ts', 'css', '-x', '**/*.test.ts']);
 
     expect(status).toBe(0);
     expect(stderr).toBe('');
+
     expect(stdout).toContain('### Tree (filtered):');
-    expect(stdout).toContain('alpha.ts');
-    expect(stdout).toContain('nested/');
-    expect(stdout).toContain('nested/gamma.ts');
-    expect(stdout).toContain('===== /alpha.ts =====');
-    expect(stdout).toContain("export const alpha = 'A';");
-    expect(stdout).toContain('===== /nested/gamma.ts =====');
-    expect(stdout).not.toContain('ignored.ts');
-    expect(stdout).not.toContain('docs/readme.md');
-  });
+    expect(stdout).toContain('src/');
+    expect(stdout).toContain('components/');
+    expect(stdout).toContain('Button.tsx');
+    expect(stdout).toContain('Button.css');
+    expect(stdout).toContain('lib/');
+    expect(stdout).toContain('api.ts');
+    expect(stdout).toContain('ignored-by-git.ts');
+    expect(stdout).toContain('ignored-by-bctx.ts');
+    expect(stdout).toContain('tests/');
+    expect(stdout).toContain('ignored-by-cli.test.ts');
 
-  it('honours exclude patterns', () => {
-    write(workspace, 'keep.ts', 'include me\n');
-    write(workspace, 'skip-me.ts', 'skip me\n');
+    expect(stdout).toContain('===== /src/components/Button.tsx =====');
+    expect(stdout).toContain('export const Button = () => {};');
+    expect(stdout).toContain('===== /src/lib/api.ts =====');
+    expect(stdout).toContain('// API logic');
 
-    const { stdout, stderr, status } = runCli(workspace, ['dump', '-x', '*skip*', 'ts']);
-
-    expect(status).toBe(0);
-    expect(stderr).toBe('');
-    expect(stdout).toContain('keep.ts');
-    expect(stdout).not.toContain('skip-me.ts');
-  });
-
-  it('supports comma-separated excludes within a single flag', () => {
-    write(workspace, 'keep.ts', 'include me\n');
-    write(workspace, 'omit-one.ts', 'omit\n');
-    write(workspace, 'omit-two.ts', 'omit\n');
-
-    const { stdout, stderr, status } = runCli(workspace, ['dump', '-x', 'omit-one.ts,omit-two.ts', 'ts']);
-
-    expect(status).toBe(0);
-    expect(stderr).toBe('');
-    expect(stdout).toContain('keep.ts');
-    expect(stdout).not.toContain('omit-one.ts');
-    expect(stdout).not.toContain('omit-two.ts');
+    expect(stdout).not.toContain('===== /src/components/Button.css =====');
+    expect(stdout).not.toContain('.button { color: red; }');
+    expect(stdout).not.toContain('===== /src/lib/ignored-by-git.ts =====');
+    expect(stdout).not.toContain('// Should not see this content');
+    expect(stdout).not.toContain('===== /src/lib/ignored-by-bctx.ts =====');
+    expect(stdout).not.toContain('===== /src/tests/ignored-by-cli.test.ts =====');
+    expect(stdout).not.toContain('// Test file content');
   });
 
   it('prints informative message when no files match', () => {
@@ -100,6 +92,6 @@ describe('dump CLI integration', () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout.trim()).toBe('');
-    expect(result.stderr).toContain('No files matched filters');
+    expect(result.stderr).toContain('No files matched the extension filters');
   });
 });

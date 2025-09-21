@@ -16,24 +16,24 @@ const runContext = async (
   await verifyRoot(root);
 
   const extensions = parseExtensions(rawExtensions);
-  const compiledPatterns = compilePatterns(exclude);
+  const compiledCliExcludes = compilePatterns(exclude);
   const ignoreFilter = await loadIgnoreFilter(root);
 
   const candidates = await collectCandidatePaths(root);
-  const files = buildMatchedFiles(root, candidates).filter((file) => {
-    if (ignoreFilter && ignoreFilter.ignores(file.relative)) {
-      return false;
-    }
+  const files = buildMatchedFiles(root, candidates)
+    .filter((file) => matchesExtension(file.relative, extensions))
+    .map((file) => {
+      const isIgnoredByConfig = ignoreFilter ? ignoreFilter.ignores(file.relative) : false;
+      const isIgnoredByCli = isExcluded(file.absolute, file.relative, compiledCliExcludes);
 
-    if (!matchesExtension(file.relative, extensions)) {
-      return false;
-    }
-
-    return !isExcluded(file.absolute, file.relative, compiledPatterns);
-  });
+      return {
+        ...file,
+        isContentExcluded: isIgnoredByConfig || isIgnoredByCli,
+      };
+    });
 
   if (files.length === 0) {
-    console.error('[bctx] No files matched filters.');
+    console.error('[bctx] No files matched the extension filters.');
     return;
   }
 

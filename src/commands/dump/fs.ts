@@ -4,24 +4,32 @@ import path from 'node:path';
 import ignore, { type Ignore } from 'ignore';
 import { normalizeRelative, parseNullSeparated, toPosix } from './utils';
 import type { MatchedFile } from './types';
+import { BCTX_IGNORE_FILENAME } from './constants';
 
-export const loadIgnoreFilter = async (root: string): Promise<Ignore | null> => {
-  const file = path.join(root, '.gitignore');
-
+const readIgnoreFile = async (root: string, filename: string): Promise<string> => {
+  const filePath = path.join(root, filename);
   try {
-    const contents = await fs.readFile(file, 'utf8');
-    if (contents.trim().length === 0) {
-      return null;
-    }
-
-    return ignore().add(contents);
+    const contents = await fs.readFile(filePath, 'utf8');
+    return contents.trim();
   } catch (error) {
     if ((error as NodeJS.ErrnoException | undefined)?.code === 'ENOENT') {
-      return null;
+      return '';
     }
 
     throw error;
   }
+};
+
+export const loadIgnoreFilter = async (root: string): Promise<Ignore | null> => {
+  const gitignoreContents = await readIgnoreFile(root, '.gitignore');
+  const bctxIgnoreContents = await readIgnoreFile(root, BCTX_IGNORE_FILENAME);
+
+  const combined = [gitignoreContents, bctxIgnoreContents].filter((value) => value.length > 0).join('\n');
+  if (combined.length === 0) {
+    return null;
+  }
+
+  return ignore().add(combined);
 };
 
 const collectWithGit = (root: string): string[] | null => {
@@ -101,6 +109,7 @@ export const buildMatchedFiles = (root: string, candidates: string[]): MatchedFi
     return {
       relative: normalized,
       absolute: path.resolve(root, normalized),
+      isContentExcluded: false,
     } satisfies MatchedFile;
   });
 };

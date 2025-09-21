@@ -6,6 +6,7 @@ export interface ContextOptions {
 export interface MatchedFile {
   absolute: string;
   relative: string;
+  isContentExcluded: boolean;
 }
 
 export interface CompiledPattern {

@@ -52,6 +52,10 @@ export const outputFiles = async (files: MatchedFile[]): Promise<void> => {
   const sorted = sortByRelative(files);
 
   for (const file of sorted) {
+    if (file.isContentExcluded) {
+      continue;
+    }
+
     console.log(`===== ${formatHeadingPath(file.relative)} =====`);
     await outputFile(file);
     console.log('');
